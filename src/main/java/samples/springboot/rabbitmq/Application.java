@@ -25,7 +25,9 @@ import java.util.concurrent.TimeUnit;
 @EnableAutoConfiguration
 public class Application implements CommandLineRunner {
 
-    final static String queueName = "spring-boot";
+    final static String exchangeName = "spring-boot-exchange";
+    final static String queueName = "spring-boot-queue";
+    final static String routingKey = "spring-boot-routing-key";
 
     @Autowired
     AnnotationConfigApplicationContext context;
@@ -40,11 +42,12 @@ public class Application implements CommandLineRunner {
 
     @Bean
     TopicExchange exchange() {
-        return new TopicExchange("spring-boot-exchange");
+        return new TopicExchange(exchangeName);
     }
 
     @Bean
     Binding binding(Queue queue, TopicExchange exchange) {
+//        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
         return BindingBuilder.bind(queue).to(exchange).with(queueName);
     }
 
@@ -73,6 +76,7 @@ public class Application implements CommandLineRunner {
         System.out.println("Waiting five seconds...");
         Thread.sleep(5000);
         System.out.println("Sending message...");
+//        rabbitTemplate.convertAndSend(routingKey, "Hello from RabbitMQ!");
         rabbitTemplate.convertAndSend(queueName, "Hello from RabbitMQ!");
         receiver().getLatch().await(10000, TimeUnit.MILLISECONDS);
         context.close();
